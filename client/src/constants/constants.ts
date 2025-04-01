@@ -1,0 +1,6 @@
+export const GRID = 'grid'
+export const MASONRY = 'masonry'
+export const LOADMORE = 'load-more'
+export const PAGINATION = 'pagination'
+export const CLASSIC = 'classic'
+export const HOVER = 'hover'
