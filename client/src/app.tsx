@@ -1,6 +1,6 @@
 import 'normalize.css'
 import { MenuWidget, PostsWidget } from './components'
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { getPosts, getSettings } from './utils'
 import s from './app.module.less'
 import { observer } from 'mobx-react'
