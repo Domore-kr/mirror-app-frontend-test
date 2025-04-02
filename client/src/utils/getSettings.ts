@@ -1,7 +1,7 @@
 export const getSettings = async () => {
-	const response = await fetch('http://localhost:4000/settings').then(
-		response => response.json()
-	)
+	const response = await fetch(
+		'https://mirror-app-frontend-demo-server.vercel.app/settings'
+	).then(response => response.json())
 
 	return response
 }

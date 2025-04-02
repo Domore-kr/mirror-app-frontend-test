@@ -1,6 +1,16 @@
+import { store } from '../../Store/store'
 import s from './PaginationWidget.module.less'
 
-const PaginationWidget = ({ totalPages, currentPage, setCurrentPage }: any) => {
+const PaginationWidget = ({
+	currentPage,
+	setCurrentPage,
+	postsPerPage,
+}: any) => {
+	if (!store.posts) {
+		return null
+	}
+	const totalPages = Math.ceil(store.posts.length / postsPerPage)
+
 	return (
 		<div className={s.pagination}>
 			{Array.from({ length: totalPages }, (_, index) => (

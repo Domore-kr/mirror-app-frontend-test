@@ -1,52 +1,107 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import s from './PostsWidget.module.less'
-import { GRID } from '../../constants/constants'
+import {
+	GRID,
+	HOVER,
+	LOADMORE,
+	MASONRY,
+	PAGINATION,
+} from '../../constants/constants'
 import { PaginationWidget } from '../PaginationWidget'
+import { store } from '../../Store/store'
+import { LoadMoreWidget } from '../LoadMoreWidget'
+import { formatDate } from '../../utils'
 
-const PostsWidget = ({ settings, posts }: any) => {
-	if (!settings || !posts) {
+const PostsWidget = () => {
+	if (!store.settings || !store.posts) {
 		return null
 	}
-	const { layout } = settings
+
+	const { layout, navigation, template } = store.settings
 	const currentLayout =
-		layout.current === GRID ? layout.params.grid : layout.params.masonry
+		layout?.current === GRID ? layout?.params?.grid : layout?.params?.masonry
+
+	if (!currentLayout) {
+		return null
+	}
 
 	const postsPerPage = currentLayout.rows * currentLayout.columns
 	const [currentPage, setCurrentPage] = useState(1)
+	const [visiblePosts, setVisiblePosts] = useState(postsPerPage)
 
-	const paginatedPosts = posts.slice(
-		(currentPage - 1) * postsPerPage,
-		currentPage * postsPerPage
+	useEffect(() => {
+		setVisiblePosts(postsPerPage)
+	}, [currentLayout])
+
+	const paginatedPosts =
+		navigation === PAGINATION
+			? store.posts.slice(
+					(currentPage - 1) * postsPerPage,
+					currentPage * postsPerPage
+			  )
+			: store.posts.slice(0, visiblePosts)
+
+	const handleLoadMore = () => {
+		setVisiblePosts(prev => prev + postsPerPage)
+	}
+
+	const nameDate = (userName: string, date: string, caption: string) => (
+		<>
+			{template === HOVER ? (
+				<>
+					<div className={`${s.postBlock} ${s.date}`}>{caption}</div>
+					<div className={`${s.postBlock} ${s.date}`}>
+						<span>{userName}</span>
+						<span>{formatDate(new Date(date))}</span>
+					</div>
+				</>
+			) : (
+				<>
+					<div className={`${s.postBlock} ${s.date}`}>
+						<span>{userName}</span>
+						<span>{formatDate(new Date(date))}</span>
+					</div>
+					<div className={`${s.postBlock} ${s.date}`}>{caption}</div>
+				</>
+			)}
+		</>
 	)
 
-	const totalPages = Math.ceil(posts.length / postsPerPage)
-
 	return (
-		<div className={`${s.root} ${layout.current === 'grid' && s.grid}`}>
+		<div className={s.root}>
 			<div
-				className={`${s.posts} ${layout.current === 'grid' && s.grid}`}
+				className={s.posts}
 				style={{
 					gridTemplateColumns: `repeat(${currentLayout.columns}, 1fr)`,
+					gridTemplateRows: `repeat(${currentLayout.rows}, auto)`,
 				}}
 			>
-				{paginatedPosts.map((post: any) => {
-					const { caption, date, likes, comments } = post
-					return (
-						<div className={s.post} key={post.id}>
-							<div className={`${s.postBlock} ${s.header}`}>{caption}</div>
-							<div className={`${s.postBlock} ${s.date}`}>{date}</div>
-							<div className={`${s.postBlock} ${s.inf}`}>
+				{paginatedPosts.map(
+					({ id, caption, date, likes, comments, username }) => (
+						<div
+							className={`${s.post} ${
+								store.settings!.layout.current === MASONRY && s.masonry
+							} ${store.settings!.layout.current === GRID && s.grid}`}
+							key={id}
+						>
+							{nameDate(username, date, caption)}
+							<div className={s.postBlock}>
 								{likes} лайков {comments} комментариев
 							</div>
 						</div>
 					)
-				})}
+				)}
 			</div>
-			<PaginationWidget
-				totalPages={totalPages}
-				currentPage={currentPage}
-				setCurrentPage={setCurrentPage}
-			/>
+			{navigation === LOADMORE && (
+				<LoadMoreWidget onLoadMore={handleLoadMore} />
+			)}
+			{navigation === PAGINATION && (
+				<PaginationWidget
+					postsPerPage={postsPerPage}
+					currentPage={currentPage}
+					setCurrentPage={setCurrentPage}
+				/>
+			)}
 		</div>
 	)
 }
